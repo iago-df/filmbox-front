@@ -10,6 +10,9 @@ public interface ApiService {
     @GET("watched/")
     Call<List<FilmResponse>> getWatched(@Header("Authorization") String token);
 
+    @GET("favorites/")
+    Call<List<FilmResponse>> getFavorites(@Header("Authorization") String token);
+
     @GET("wishlist/")
     Call<List<FilmResponse>> getWishlist(@Header("Authorization") String token);
 }
