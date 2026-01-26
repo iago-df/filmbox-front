@@ -4,6 +4,87 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="18dp"
     android:background="#FAFAFA">
 
+    <TextView
+        android:id="@+id/tvBuscar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Buscar"
+        android:textColor="#000000"
+        android:textSize="40sp"
+        android:fontFamily="@font/inter_bold"
+        android:layout_marginTop="40dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- Caja de búsqueda -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/searchBox"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="12dp"
+        app:cardCornerRadius="15dp"
+        app:cardElevation="2dp"
+        app:strokeColor="#B8A0A0"
+        app:strokeWidth="2dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/tvBuscar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_search_small"
+                android:tint="#B8A0A0"/>
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Películas, perfiles, etc"
+                android:textColor="#000000"
+                android:textColorHint="#939393"
+                android:background="@null"
+                android:paddingStart="10dp"
+                android:fontFamily="@font/inter_bold"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Explorar todo -->
+    <TextView
+        android:id="@+id/tvExplorar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Explorar todo"
+        android:textColor="#000000"
+        android:textSize="32sp"
+        android:fontFamily="@font/inter_bold"
+        android:layout_marginTop="40dp"
+        app:layout_constraintTop_toBottomOf="@id/searchBox"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- Grid de categorías -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCategories"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="14dp"
+        app:layout_constraintTop_toBottomOf="@id/tvExplorar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
