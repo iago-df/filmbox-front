@@ -16,15 +16,15 @@
         android:id="@+id/profile_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="40dp"
         android:layout_marginStart="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
             android:id="@+id/profile_image"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
             android:src="@drawable/ic_profile_grey"
             android:scaleType="centerCrop"
             android:contentDescription="Foto de perfil"
@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Usuario"
-            android:textSize="24sp"
+            android:textSize="26sp"
             android:textStyle="bold"
             android:layout_marginStart="12dp"
             app:layout_constraintStart_toEndOf="@id/profile_image"
@@ -56,12 +56,15 @@
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/profile_container"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/watched_recycler"
         android:layout_width="0dp"
         android:layout_height="150dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintTop_toBottomOf="@id/watched_label"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -75,17 +78,20 @@
         android:id="@+id/favorites_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Favoritas"
+        android:text="Películas Favoritas"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/watched_recycler"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/favorites_recycler"
         android:layout_width="0dp"
         android:layout_height="150dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintTop_toBottomOf="@id/favorites_label"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -104,12 +110,15 @@
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/favorites_recycler"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/wishlist_recycler"
         android:layout_width="0dp"
         android:layout_height="150dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintTop_toBottomOf="@id/wishlist_label"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
