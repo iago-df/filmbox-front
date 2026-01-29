@@ -62,6 +62,19 @@ public class ProfileFragment extends Fragment {
             loadFavoriteMovies(view);
             loadWishlistMovies(view);
 
+            ImageView watchedArrow = view.findViewById(R.id.watched_arrow);
+            watchedArrow.setOnClickListener(v -> {
+                WatchedFragment fragment = new WatchedFragment();
+                Bundle args = new Bundle();
+                args.putString("SESSION_TOKEN", sessionToken);
+                fragment.setArguments(args);
+
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, fragment)
+                        .addToBackStack(null)
+                        .commit();
+            });
 
             ImageView favoritesArrow = view.findViewById(R.id.favorites_arrow);
 
