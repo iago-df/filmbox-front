@@ -28,14 +28,6 @@
             </PendingDiffInfo>
           </value>
         </entry>
-        <entry key="$PROJECT_DIR$/app/src/main/java/com/example/filmbox_front/app/build.gradle.kts">
-          <value>
-            <PendingDiffInfo>
-              <option name="filePath" value="$PROJECT_DIR$/app/src/main/java/com/example/filmbox_front/app/build.gradle.kts" />
-              <option name="updatedContent" value="    compileSdk = 34&#10;&#10;    defaultConfig {&#10;        // ...existing code...&#10;        targetSdk = 34&#10;        // ...existing code...&#10;" />
-            </PendingDiffInfo>
-          </value>
-        </entry>
         <entry key="$PROJECT_DIR$/app/src/main/java/com/example/filmbox_front/models/ReviewRequest.java">
           <value>
             <PendingDiffInfo>
