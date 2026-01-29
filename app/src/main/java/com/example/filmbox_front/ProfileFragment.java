@@ -79,6 +79,23 @@ public class ProfileFragment extends Fragment {
                         .commit();
             });
 
+            ImageView wishlistArrow = view.findViewById(R.id.wishlist_arrow);
+
+            wishlistArrow.setOnClickListener(v -> {
+                WishlistFragment fragment = new WishlistFragment();
+
+                Bundle args = new Bundle();
+                args.putString("SESSION_TOKEN", sessionToken);
+                fragment.setArguments(args);
+
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, fragment)
+                        .addToBackStack(null)
+                        .commit();
+            });
+
+
         }
     }
 

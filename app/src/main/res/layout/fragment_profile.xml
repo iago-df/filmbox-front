@@ -116,17 +116,31 @@
             app:layout_constraintTop_toBottomOf="@id/favorites_header" />
 
         <!-- Wishlist -->
-        <TextView
-            android:id="@+id/wishlist_label"
+
+        <LinearLayout
+            android:id="@+id/wishlist_header"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="24dp"
-            android:text="Wishlist"
-            android:textSize="20sp"
-            android:textStyle="bold"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/favorites_recycler"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/favorites_recycler" />
+            android:layout_marginTop="24dp"
+            android:layout_marginStart="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wishlist"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <ImageView
+                android:id="@+id/wishlist_arrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_arrow_right"/>
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/wishlist_recycler"
@@ -140,7 +154,7 @@
             android:scrollbars="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/wishlist_label" />
+            app:layout_constraintTop_toBottomOf="@id/wishlist_header" />
 
         <!-- Logout -->
         <Button
