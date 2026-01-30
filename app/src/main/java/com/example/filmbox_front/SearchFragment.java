@@ -29,6 +29,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.http.Path;
 
 public class SearchFragment extends Fragment {
 
@@ -165,6 +166,17 @@ public class SearchFragment extends Fragment {
         rvCategories.setLayoutManager(new GridLayoutManager(getContext(), 2));
         CategoryAdapter categoryAdapter = new CategoryAdapter();
         rvCategories.setAdapter(categoryAdapter);
+
+        categoryAdapter.setOnCategoryClickListener(category -> {
+            CategoryMoviesFragment frag =
+                    CategoryMoviesFragment.newInstance(category.id, category.title);
+
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, frag)
+                    .addToBackStack(null)
+                    .commit();
+        });
+
 
         // Recents
         RecentAdapter recentAdapter = new RecentAdapter();

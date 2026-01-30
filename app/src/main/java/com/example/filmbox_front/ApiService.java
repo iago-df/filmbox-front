@@ -4,6 +4,7 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 public interface ApiService {
     @GET("/api/categories")
@@ -14,4 +15,8 @@ public interface ApiService {
 
     @GET("/api/users")
     Call<List<UserLite>> searchUsers(@Query("query") String query);
+
+    @GET("/api/categories/{category_id}/movies")
+    Call<List<FilmLite>> categoryMovies(@Path("category_id") int categoryId);
+
 }
