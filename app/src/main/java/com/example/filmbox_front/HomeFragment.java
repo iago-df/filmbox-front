@@ -83,99 +83,47 @@ public class HomeFragment extends Fragment {
                     Log.d(TAG, "Categoría: ID=" + cat.getId() + ", Título=" + cat.getTitle());
                 }
 
-                // 2. Una vez tenemos las categorías, pedimos las películas
-                api.getFilms().enqueue(new Callback<List<Film>>() {
-                    @Override
-                    public void onResponse(Call<List<Film>> call, Response<List<Film>> filmResponse) {
-                        Log.d(TAG, "Respuesta de películas recibida. Código: " + filmResponse.code());
+                // 2. Cargamos las películas para cada categoría
+                Map<Integer, List<Film>> mapaPelisPorCategoria = new HashMap<>();
+                int[] categoriasPendientes = {categorias.size()};
+                
+                // Inicializamos el mapa
+                for (Category cat : categorias) {
+                    mapaPelisPorCategoria.put(cat.getId(), new ArrayList<>());
+                }
 
-                        if (!isAdded()) {
-                            Log.w(TAG, "Fragment no está añadido, cancelando operación");
-                            return;
-                        }
+                // 3. Para cada categoría, obtenemos sus películas
+                for (Category cat : categorias) {
+                    api.getMoviesByCategory(cat.getId()).enqueue(new Callback<List<Film>>() {
+                        @Override
+                        public void onResponse(Call<List<Film>> call, Response<List<Film>> filmResponse) {
+                            if (!isAdded()) return;
 
-                        if (!filmResponse.isSuccessful()) {
-                            Log.e(TAG, "Respuesta no exitosa: " + filmResponse.code());
-                            Toast.makeText(getContext(), "Error al cargar películas: " + filmResponse.code(), Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        if (filmResponse.body() == null) {
-                            Log.e(TAG, "Body de películas es null");
-                            Toast.makeText(getContext(), "No se recibieron películas", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        List<Film> todasLasPelis = filmResponse.body();
-                        Log.d(TAG, "Películas recibidas: " + todasLasPelis.size());
-
-                        // 3. Organizamos las películas en el mapa por ID de categoría
-                        Map<Integer, List<Film>> mapaPelisPorCategoria = new HashMap<>();
-
-                        // Inicializamos cada categoría en el mapa
-                        for (Category cat : categorias) {
-                            mapaPelisPorCategoria.put(cat.getId(), new ArrayList<>());
-                        }
-
-                        // Repartimos las películas según sus IDs de categoría
-                        for (Film peli : todasLasPelis) {
-                            Log.d(TAG, "Procesando película: " + peli.getTitle());
-
-                            if (peli.getCategoriasIds() == null) {
-                                Log.w(TAG, "Película sin categorías: " + peli.getTitle());
-                                continue;
+                            if (filmResponse.isSuccessful() && filmResponse.body() != null) {
+                                List<Film> peliculas = filmResponse.body();
+                                mapaPelisPorCategoria.put(cat.getId(), peliculas);
+                                Log.d(TAG, "Categoría '" + cat.getTitle() + "' tiene " + peliculas.size() + " películas");
+                            } else {
+                                Log.w(TAG, "Error cargando películas para categoría " + cat.getTitle() + ": " + filmResponse.code());
                             }
 
-                            Log.d(TAG, "Categorías de " + peli.getTitle() + ": " + peli.getCategoriasIds());
-
-                            for (int catId : peli.getCategoriasIds()) {
-                                if (mapaPelisPorCategoria.containsKey(catId)) {
-                                    mapaPelisPorCategoria.get(catId).add(peli);
-                                    Log.d(TAG, "Película añadida a categoría " + catId);
-                                } else {
-                                    Log.w(TAG, "Categoría " + catId + " no existe en el mapa");
-                                }
+                            categoriasPendientes[0]--;
+                            if (categoriasPendientes[0] == 0) {
+                                // Todas las categorías han sido procesadas
+                                configurarAdapter(categorias, mapaPelisPorCategoria);
                             }
                         }
 
-                        // Log del contenido final
-                        for (Category cat : categorias) {
-                            int count = mapaPelisPorCategoria.get(cat.getId()).size();
-                            Log.d(TAG, "Categoría '" + cat.getTitle() + "' tiene " + count + " películas");
-                        }
-
-                        // 4. Filtrar categorías que no tienen películas
-                        List<Category> categoriasConContenido = new ArrayList<>();
-                        for (Category cat : categorias) {
-                            if (!mapaPelisPorCategoria.get(cat.getId()).isEmpty()) {
-                                categoriasConContenido.add(cat);
+                        @Override
+                        public void onFailure(Call<List<Film>> call, Throwable t) {
+                            Log.e(TAG, "Error cargando películas para categoría " + cat.getTitle(), t);
+                            categoriasPendientes[0]--;
+                            if (categoriasPendientes[0] == 0) {
+                                configurarAdapter(categorias, mapaPelisPorCategoria);
                             }
                         }
-
-                        Log.d(TAG, "Categorías con contenido: " + categoriasConContenido.size());
-
-                        if (categoriasConContenido.isEmpty()) {
-                            Log.w(TAG, "No hay categorías con películas para mostrar");
-                            Toast.makeText(getContext(), "No hay contenido para mostrar", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        // 5. Configuramos el Adaptador Maestro
-                        ApiService api = RetrofitClient.getApiService();
-
-                        mainAdapter = new MainCategoryAdapter(categoriasConContenido, mapaPelisPorCategoria, getContext(), api);
-                        rvMain.setAdapter(mainAdapter);
-                        Log.d(TAG, "Adapter configurado con " + categoriasConContenido.size() + " categorías");
-                    }
-
-                    @Override
-                    public void onFailure(Call<List<Film>> call, Throwable t) {
-                        Log.e(TAG, "Error cargando películas", t);
-                        if (isAdded()) {
-                            Toast.makeText(getContext(), "Error al cargar películas: " + t.getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
+                    });
+                }
             }
 
             @Override
@@ -186,5 +134,29 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private void configurarAdapter(List<Category> categorias, Map<Integer, List<Film>> mapaPelisPorCategoria) {
+        // Filtrar categorías que no tienen películas
+        List<Category> categoriasConContenido = new ArrayList<>();
+        for (Category cat : categorias) {
+            if (!mapaPelisPorCategoria.get(cat.getId()).isEmpty()) {
+                categoriasConContenido.add(cat);
+            }
+        }
+
+        Log.d(TAG, "Categorías con contenido: " + categoriasConContenido.size());
+
+        if (categoriasConContenido.isEmpty()) {
+            Log.w(TAG, "No hay categorías con películas para mostrar");
+            Toast.makeText(getContext(), "No hay contenido para mostrar", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Configuramos el Adaptador Maestro
+        ApiService api = RetrofitClient.getApiService();
+        mainAdapter = new MainCategoryAdapter(categoriasConContenido, mapaPelisPorCategoria, getContext(), api);
+        rvMain.setAdapter(mainAdapter);
+        Log.d(TAG, "Adapter configurado con " + categoriasConContenido.size() + " categorías");
     }
 }

@@ -19,9 +19,12 @@ public interface ApiService {
     @GET("categories/{category_id}/movies")
     Call<List<Film>> getMoviesByCategory(@Path("category_id") int categoryId);
 
-    @PUT("favorites/{movie_id")
+    @GET("favorites")
+    Call<List<Film>> getFavorites();
+
+    @PUT("favorites/{movie_id}")
     Call<Void> addFavorite(@Path("movie_id") int movieId);
 
-    @DELETE("favorites/{movie_id")
+    @DELETE("favorites/{movie_id}")
     Call<Void> removeFavorite(@Path("movie_id") int movieId);
 }

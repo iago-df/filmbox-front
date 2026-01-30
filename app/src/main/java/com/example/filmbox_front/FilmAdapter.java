@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -46,10 +47,8 @@ public class FilmAdapter extends RecyclerView.Adapter<FilmAdapter.FilmViewHolder
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .into(holder.imgFilm);
 
-        // Estado inicial de la estrella
-        holder.imgFavorite.setImageResource(film.isFavorite() ?
-                android.R.drawable.btn_star_big_on :
-                android.R.drawable.btn_star_big_off);
+        // Cargar estado inicial de favoritos
+        cargarEstadoFavorite(film, holder);
 
         holder.imgFavorite.setOnClickListener(v -> {
             int movieId = film.getId();
@@ -81,6 +80,16 @@ public class FilmAdapter extends RecyclerView.Adapter<FilmAdapter.FilmViewHolder
                         holder.imgFavorite.setImageResource(!newState ?
                                 android.R.drawable.btn_star_big_on :
                                 android.R.drawable.btn_star_big_off);
+                        
+                        if (response.code() == 401 || response.code() == 403) {
+                            Toast.makeText(context, "Error de autenticación", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, "Error al actualizar favoritos", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        // Éxito: mostrar mensaje breve
+                        Toast.makeText(context, newState ? "Añadido a favoritos" : "Eliminado de favoritos", 
+                                     Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -91,8 +100,35 @@ public class FilmAdapter extends RecyclerView.Adapter<FilmAdapter.FilmViewHolder
                     holder.imgFavorite.setImageResource(!newState ?
                             android.R.drawable.btn_star_big_on :
                             android.R.drawable.btn_star_big_off);
+                    Toast.makeText(context, "Error de conexión", Toast.LENGTH_SHORT).show();
                 }
             });
+        });
+    }
+
+    private void cargarEstadoFavorite(Film film, FilmViewHolder holder) {
+        // Verificar si la película está en favoritos
+        apiService.getFavorites().enqueue(new Callback<List<Film>>() {
+            @Override
+            public void onResponse(Call<List<Film>> call, Response<List<Film>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Film> favorites = response.body();
+                    boolean esFavorita = favorites.stream().anyMatch(f -> f.getId() == film.getId());
+                    film.setFavorite(esFavorita);
+                    
+                    // Actualizar el estado visual
+                    holder.imgFavorite.setImageResource(esFavorita ?
+                            android.R.drawable.btn_star_big_on :
+                            android.R.drawable.btn_star_big_off);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Film>> call, Throwable t) {
+                // Si falla la carga, asumimos que no es favorita
+                film.setFavorite(false);
+                holder.imgFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+            }
         });
     }
 

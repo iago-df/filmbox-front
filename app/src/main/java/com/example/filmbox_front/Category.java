@@ -6,7 +6,7 @@ public class Category {
     @SerializedName("id")
     private int id;
 
-    @SerializedName("nombre")
+    @SerializedName("title")
     private String title;
 
     public int getId() {
