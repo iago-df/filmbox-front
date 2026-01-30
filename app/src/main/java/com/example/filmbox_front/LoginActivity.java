@@ -34,6 +34,15 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.login_button);     // Corrected ID for login Button
         tvRegisterLink = findViewById(R.id.has_account_text); // Assuming this is the register link TextView
 
+        tvRegisterLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to registration activity
+                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class); // Assuming UserRegistration is your registration activity
+                startActivity(intent);
+            }
+        });
+
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,15 +104,7 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         // Optional: Set listener for registration link
-        if (tvRegisterLink != null) {
-            tvRegisterLink.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Navigate to registration activity
-                    Intent intent = new Intent(LoginActivity.this, UserRegistration.class); // Assuming UserRegistration is your registration activity
-                    startActivity(intent);
-                }
-            });
+
         }
     }
-}
+

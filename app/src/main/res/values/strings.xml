@@ -3,12 +3,9 @@
     <string name="filmbox">FilmBox</string>
     <string name="nombre_label">Nombre:</string>
     <string name="contrasena_label">Contraseña:</string>
-<<<<<<< HEAD
     <string name="account_text">Ya tienes cuenta?</string>
     <string name="login_button_text">Iniciar Sesión</string>
-=======
     <string name="no_account_text">Aún no tienes cuenta?</string>
     <string name="register_button_text">Registrarse</string>
->>>>>>> a4897a2b5637eeac59aa2ae271ab41d748112791
     <string name="filmbox_icon_desc">FilmBox Icon</string>
 </resources>
