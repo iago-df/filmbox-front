@@ -63,15 +63,10 @@ public class WishlistFragment extends Fragment {
                         .create()
         );
 
-        // Misma base que ProfileFragment (wishlist): GET 8000/api/wishlist
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:8000/api/")
-                .addConverterFactory(gsonFactory)
-                .build();
-        api = retrofit.create(ApiService.class);
+        api = RetrofitClient.getApiService();
 
         // Configurar RecyclerView
-        RecyclerView recyclerView = view.findViewById(R.id.wishlist_grid);
+        RecyclerView recyclerView = view.findViewById(R.id.wishlist_recycler);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
 
         // Adaptador vacío inicial

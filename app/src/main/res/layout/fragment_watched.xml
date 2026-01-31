@@ -18,8 +18,8 @@
 
         <ImageView
             android:id="@+id/back_arrow"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:src="@drawable/ic_arrow_left"
             android:contentDescription="Volver"
             android:clickable="true"
@@ -30,15 +30,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Películas Vistas"
-            android:textSize="20sp"
+            android:textSize="32sp"
             android:textStyle="bold"
             android:layout_marginStart="8dp"
             android:gravity="center_vertical"/>
     </LinearLayout>
 
-    <!-- RecyclerView -->
+    <!-- RecyclerView vertical para las películas vistas -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/watched_grid"
+        android:id="@+id/watched_recycler"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"

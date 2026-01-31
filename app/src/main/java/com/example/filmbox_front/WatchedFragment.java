@@ -50,13 +50,10 @@ public class WatchedFragment extends Fragment {
         Type listType = new TypeToken<List<FilmResponse>>() {}.getType();
         GsonConverterFactory gsonFactory = GsonConverterFactory.create(
                 new GsonBuilder().registerTypeAdapter(listType, new FilmListDeserializer()).create());
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:8000/api/")
-                .addConverterFactory(gsonFactory)
-                .build();
-        api = retrofit.create(ApiService.class);
 
-        RecyclerView recyclerView = view.findViewById(R.id.watched_grid);
+        api = RetrofitClient.getApiService();
+
+        RecyclerView recyclerView = view.findViewById(R.id.watched_recycler);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         MovieAdapter adapter = new MovieAdapter(requireContext(), new ArrayList<>(), pos -> {});
         recyclerView.setAdapter(adapter);

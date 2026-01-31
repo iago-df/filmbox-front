@@ -18,8 +18,8 @@
 
         <ImageView
             android:id="@+id/back_arrow"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:src="@drawable/ic_arrow_left"
             android:contentDescription="Volver"
             android:clickable="true"
@@ -30,23 +30,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Wishlist"
-            android:textSize="20sp"
+            android:textSize="32sp"
             android:textStyle="bold"
             android:layout_marginStart="8dp"
             android:gravity="center_vertical"/>
     </LinearLayout>
 
-    <!-- RecyclerView para películas -->
+    <!-- RecyclerView vertical para la wishlist -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/wishlist_grid"
+        android:id="@+id/wishlist_recycler"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical"
+        android:paddingTop="16dp"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:clipToPadding="false"
-        android:scrollbars="vertical"
-        android:paddingTop="16dp"/>
-
+        app:layout_constraintBottom_toBottomOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

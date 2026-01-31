@@ -40,13 +40,7 @@ public class ProfileFragment extends Fragment {
             username = getArguments().getString("USERNAME", "Usuario");
         }
 
-        // Inicializar Retrofit
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:8000/api/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        api = retrofit.create(ApiService.class);
+        api = RetrofitClient.getApiService();
 
         // Foto de perfil predeterminada
         ImageView profileImage = view.findViewById(R.id.profile_image);
