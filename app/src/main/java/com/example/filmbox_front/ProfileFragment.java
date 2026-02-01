@@ -22,6 +22,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ProfileFragment extends Fragment {
 
+    private static final String BASE_URL = "http://10.0.2.2:8000";
+
     private ApiService api;
     private String sessionToken = "";
     private String username = "Usuario";
@@ -101,8 +103,6 @@ public class ProfileFragment extends Fragment {
                         .addToBackStack(null)
                         .commit();
             });
-
-
         }
     }
 
@@ -112,7 +112,9 @@ public class ProfileFragment extends Fragment {
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
                 if(response.isSuccessful() && response.body() != null) {
                     List<String> urls = new ArrayList<>();
-                    for(FilmResponse f : response.body()) urls.add(f.image_url);
+                    for(FilmResponse f : response.body()) {
+                        urls.add(buildFullImageUrl(f.image_url));
+                    }
 
                     RecyclerView watchedRecycler = view.findViewById(R.id.watched_recycler);
                     watchedRecycler.setLayoutManager(
@@ -131,7 +133,8 @@ public class ProfileFragment extends Fragment {
     }
 
     private void loadFavoriteMovies(View view) {
-        api.getFavorites("Bearer " + sessionToken)
+        // CORREGIDO: usar getFavoritesAuth en lugar de getFavorites
+        api.getFavoritesAuth("Bearer " + sessionToken)
                 .enqueue(new Callback<List<FilmResponse>>() {
 
                     @Override
@@ -142,7 +145,7 @@ public class ProfileFragment extends Fragment {
 
                             List<String> urls = new ArrayList<>();
                             for (FilmResponse f : response.body()) {
-                                urls.add(f.image_url);
+                                urls.add(buildFullImageUrl(f.image_url));
                             }
 
                             RecyclerView favoritesRecycler =
@@ -177,7 +180,9 @@ public class ProfileFragment extends Fragment {
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
                 if(response.isSuccessful() && response.body() != null) {
                     List<String> urls = new ArrayList<>();
-                    for(FilmResponse f : response.body()) urls.add(f.image_url);
+                    for(FilmResponse f : response.body()) {
+                        urls.add(buildFullImageUrl(f.image_url));
+                    }
 
                     RecyclerView wishlistRecycler = view.findViewById(R.id.wishlist_recycler);
                     wishlistRecycler.setLayoutManager(
@@ -193,5 +198,13 @@ public class ProfileFragment extends Fragment {
                 t.printStackTrace();
             }
         });
+    }
+
+    // NUEVO: Método helper para construir URLs completas
+    private String buildFullImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isEmpty()) return imageUrl;
+        if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+        String path = imageUrl.startsWith("/") ? imageUrl : "/" + imageUrl;
+        return BASE_URL + path;
     }
 }

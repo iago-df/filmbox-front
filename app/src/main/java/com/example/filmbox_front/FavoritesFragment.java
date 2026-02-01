@@ -67,7 +67,8 @@ public class FavoritesFragment extends Fragment {
 
     private void loadFavorites(MovieAdapter adapter) {
         if (sessionToken == null || sessionToken.isEmpty()) return;
-        api.getFavorites("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
+        // CORREGIDO: usar getFavoritesAuth en lugar de getFavorites
+        api.getFavoritesAuth("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
             @Override
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -99,4 +100,3 @@ public class FavoritesFragment extends Fragment {
         return BASE_URL + path;
     }
 }
-

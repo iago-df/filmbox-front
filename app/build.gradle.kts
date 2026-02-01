@@ -5,9 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.filmbox_front"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.filmbox_front"
@@ -46,7 +44,15 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    // Retrofit para llamadas API
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // Glide para carga de imágenes
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+
+    // Picasso para carga de imágenes
     implementation("com.squareup.picasso:picasso:2.71828")
 }
