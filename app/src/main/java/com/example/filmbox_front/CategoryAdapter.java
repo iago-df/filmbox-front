@@ -44,12 +44,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.VH> {
     @Override
     public void onBindViewHolder(@NonNull VH h, int position) {
         Category c = items.get(position);
-        System.out.println("IMG URL = " + c.image_url);
+        System.out.println("IMG URL = " + c.getImageUrl());
 
-        h.name.setText(c.title);
+        h.name.setText(c.getTitle());
 
         Glide.with(h.itemView.getContext())
-                .load(c.image_url)
+                .load(c.getImageUrl())
                 .centerCrop()
                 .into(h.image);
 

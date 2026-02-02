@@ -169,7 +169,7 @@ public class SearchFragment extends Fragment {
 
         categoryAdapter.setOnCategoryClickListener(category -> {
             CategoryMoviesFragment frag =
-                    CategoryMoviesFragment.newInstance(category.id, category.title);
+                    CategoryMoviesFragment.newInstance(category.getId(), category.getTitle());
 
             requireActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, frag)
