@@ -3,6 +3,7 @@ package com.example.filmbox_front;
 import com.google.gson.annotations.SerializedName;
 
 public class Category {
+
     @SerializedName("id")
     private int id;
 
@@ -10,7 +11,7 @@ public class Category {
     private String title;
 
     @SerializedName("image_url")
-    private String image_url;
+    private String imageUrl;
 
     public int getId() {
         return id;
@@ -20,8 +21,8 @@ public class Category {
         return title;
     }
 
-    public String getImage_url() {
-        return image_url;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     public void setId(int id) {
@@ -32,7 +33,7 @@ public class Category {
         this.title = title;
     }
 
-    public void setImage_url(String image_url) {
-        this.image_url = image_url;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

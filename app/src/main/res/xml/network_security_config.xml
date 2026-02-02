@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-<<<<<<< HEAD
-    <base-config cleartextTrafficPermitted="true" />
-</network-security-config>
-=======
     <!-- Permitir HTTP (cleartext) para el backend en desarrollo -->
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
@@ -12,4 +8,3 @@
         </trust-anchors>
     </base-config>
 </network-security-config>
->>>>>>> 2b0b1deb8ee5300836fde54f24eea4496bd49803
