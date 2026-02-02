@@ -6,11 +6,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -23,12 +23,22 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvRegisterLink;
 
     private static final String PREFS_NAME = "FilmBoxPrefs";
-    private static final String TOKEN_KEY = "SESSION_TOKEN"; // clave exacta que lee el fragment
+    private static final String TOKEN_KEY = "SESSION_TOKEN";
     private static final String USERNAME_KEY = "USERNAME";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Si ya hay token, no tiene sentido mostrar login
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String token = prefs.getString(TOKEN_KEY, "");
+        if (token != null && !token.trim().isEmpty()) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.login);
 
         etUsername = findViewById(R.id.name_input);
@@ -50,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             LoginRequest loginRequest = new LoginRequest(username, password);
-            ApiService apiService = RetrofitClient.getApiService();
+            ApiService apiService = RetrofitClient.getApiService(); // usa tu método real
 
             apiService.loginUser(loginRequest).enqueue(new Callback<LoginResponse>() {
                 @Override
@@ -59,24 +69,19 @@ public class LoginActivity extends AppCompatActivity {
                         LoginResponse loginResponse = response.body();
                         String token = loginResponse.getToken();
 
-                        // Guardar token con clave correcta
                         SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
-                        editor.putString(TOKEN_KEY, token);      // sesión
-                        editor.putString(USERNAME_KEY, loginResponse.getUsername()); // usuario
+                        editor.putString(TOKEN_KEY, token);
+                        editor.putString(USERNAME_KEY, loginResponse.getUsername());
                         editor.apply();
 
                         Log.d("LoginActivity", "Token guardado: " + token);
-
                         Toast.makeText(LoginActivity.this, loginResponse.getDetail(), Toast.LENGTH_SHORT).show();
 
-                        // Ir a pantalla principal
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         finish();
                     } else {
                         String errorMessage = "Error en el login: Credenciales inválidas";
-                        if (response.errorBody() != null) {
-                            errorMessage += " - " + response.code();
-                        }
+                        if (response.errorBody() != null) errorMessage += " - " + response.code();
                         Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                         Log.e("LoginActivity", errorMessage);
                     }

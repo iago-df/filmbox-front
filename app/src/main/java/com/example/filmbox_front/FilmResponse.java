@@ -33,16 +33,5 @@ public class FilmResponse {
     public String trailer_url;
 
     @SerializedName("categorias")
-    public List<Category> categorias;
-
-    public static class Category {
-        @SerializedName("id")
-        public int id;
-
-        @SerializedName("title")
-        public String title;
-
-        @SerializedName("image_url")
-        public String image_url;
-    }
+    public List<com.example.filmbox_front.Category> categorias;
 }
