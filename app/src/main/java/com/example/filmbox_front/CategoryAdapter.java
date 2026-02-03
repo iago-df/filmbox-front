@@ -9,7 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +48,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.VH> {
 
         h.name.setText(c.getTitle());
 
-        Glide.with(h.itemView.getContext())
+        Picasso.get()
                 .load(c.getImageUrl())
+                .placeholder(R.drawable.ic_launcher_foreground)
+                .error(R.drawable.ic_launcher_foreground)
+                .fit()
                 .centerCrop()
                 .into(h.image);
 

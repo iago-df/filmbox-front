@@ -110,6 +110,9 @@ public class ProfileFragment extends Fragment {
         api.getWatched("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
             @Override
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                // Verificar si el fragment sigue attached antes de usar el contexto
+                if (!isAdded() || getContext() == null) return;
+                
                 if(response.isSuccessful() && response.body() != null) {
                     List<String> urls = new ArrayList<>();
                     for(FilmResponse f : response.body()) {
@@ -119,7 +122,7 @@ public class ProfileFragment extends Fragment {
                     RecyclerView watchedRecycler = view.findViewById(R.id.watched_recycler);
                     watchedRecycler.setLayoutManager(
                             new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                    watchedRecycler.setAdapter(new MovieAdapter(getContext(), urls, position -> {
+                    watchedRecycler.setAdapter(MovieAdapter.createWithUrlsOnly(getContext(), urls, position -> {
                         // click en la película
                     }));
                 }
@@ -141,6 +144,9 @@ public class ProfileFragment extends Fragment {
                     public void onResponse(Call<List<FilmResponse>> call,
                                            Response<List<FilmResponse>> response) {
 
+                        // Verificar si el fragment sigue attached antes de usar el contexto
+                        if (!isAdded() || getContext() == null) return;
+
                         if (response.isSuccessful() && response.body() != null) {
 
                             List<String> urls = new ArrayList<>();
@@ -153,14 +159,14 @@ public class ProfileFragment extends Fragment {
 
                             favoritesRecycler.setLayoutManager(
                                     new LinearLayoutManager(
-                                            requireContext(),
+                                            getContext(),
                                             LinearLayoutManager.HORIZONTAL,
                                             false
                                     )
                             );
 
                             favoritesRecycler.setAdapter(
-                                    new MovieAdapter(requireContext(), urls, position -> {
+                                    MovieAdapter.createWithUrlsOnly(getContext(), urls, position -> {
                                         // click en favorita
                                     })
                             );
@@ -178,6 +184,9 @@ public class ProfileFragment extends Fragment {
         api.getWishlist("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
             @Override
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                // Verificar si el fragment sigue attached antes de usar el contexto
+                if (!isAdded() || getContext() == null) return;
+
                 if(response.isSuccessful() && response.body() != null) {
                     List<String> urls = new ArrayList<>();
                     for(FilmResponse f : response.body()) {
@@ -187,7 +196,7 @@ public class ProfileFragment extends Fragment {
                     RecyclerView wishlistRecycler = view.findViewById(R.id.wishlist_recycler);
                     wishlistRecycler.setLayoutManager(
                             new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                    wishlistRecycler.setAdapter(new MovieAdapter(getContext(), urls, position -> {
+                    wishlistRecycler.setAdapter(MovieAdapter.createWithUrlsOnly(getContext(), urls, position -> {
                         // click en la película
                     }));
                 }

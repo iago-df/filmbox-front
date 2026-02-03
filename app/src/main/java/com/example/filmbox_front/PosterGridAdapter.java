@@ -1,5 +1,7 @@
 package com.example.filmbox_front;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +10,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,11 @@ import java.util.List;
 public class PosterGridAdapter extends RecyclerView.Adapter<PosterGridAdapter.VH> {
 
     private final List<FilmLite> items = new ArrayList<>();
+    private Context context;
+
+    public PosterGridAdapter(Context context) {
+        this.context = context;
+    }
 
     public void setItems(List<FilmLite> newItems) {
         items.clear();
@@ -33,12 +40,22 @@ public class PosterGridAdapter extends RecyclerView.Adapter<PosterGridAdapter.VH
 
     @Override
     public void onBindViewHolder(@NonNull VH h, int position) {
-        FilmLite m = items.get(position);
+        FilmLite film = items.get(position);
 
-        Glide.with(h.itemView.getContext())
-                .load(m.image_url)
+        Picasso.get()
+                .load(film.image_url)
+                .placeholder(R.drawable.ic_launcher_foreground)
+                .error(R.drawable.ic_launcher_foreground)
+                .fit()
                 .centerCrop()
                 .into(h.poster);
+
+        // Click listener para navegar a detalles de película
+        h.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, FilmPageActivity.class);
+            intent.putExtra("movie_id", film.id);
+            context.startActivity(intent);
+        });
     }
 
     @Override

@@ -60,8 +60,39 @@ public interface ApiService {
     Call<List<FilmResponse>> getFavoritesAuth(@Header("Authorization") String authHeader);
 
     @PUT("favorites/{movie_id}")
-    Call<Void> addFavorite(@Path("movie_id") int movieId);
+    Call<Void> addFavorite(@Path("movie_id") int movieId, @Header("Authorization") String authHeader);
 
     @DELETE("favorites/{movie_id}")
-    Call<Void> removeFavorite(@Path("movie_id") int movieId);
+    Call<Void> removeFavorite(@Path("movie_id") int movieId, @Header("Authorization") String authHeader);
+
+    // Detalles de película
+    @GET("movies/{movie_id}")
+    Call<Film> getMovieDetails(@Path("movie_id") int movieId);
+
+    // Reviews
+    @GET("movies/{id}/reviews")
+    Call<ReviewResponse> getMovieReviews(@Path("id") int movieId);
+
+    @GET("movies/{id}/reviews")
+    Call<ReviewResponse> getMovieReviews(@Path("id") int movieId, @Query("all") boolean showAll);
+
+    @GET("movies/{id}/reviews")
+    Call<List<Review>> getAllMovieReviews(@Path("id") int movieId, @Query("all") boolean showAll);
+
+    @PUT("movies/{id}/reviews")
+    Call<Review> submitReview(@Path("id") int movieId, @Body ReviewRequest reviewRequest, @Header("Authorization") String authHeader);
+
+    // Watched
+    @PUT("watched/{movie_id}")
+    Call<Void> markAsWatched(@Path("movie_id") int movieId, @Header("Authorization") String authHeader);
+
+    @DELETE("watched/{movie_id}")
+    Call<Void> removeFromWatched(@Path("movie_id") int movieId, @Header("Authorization") String authHeader);
+
+    // Wishlist
+    @PUT("wishlist/{movie_id}")
+    Call<Void> addToWishlist(@Path("movie_id") int movieId, @Header("Authorization") String authHeader);
+
+    @DELETE("wishlist/{movie_id}")
+    Call<Void> removeFromWishlist(@Path("movie_id") int movieId, @Header("Authorization") String authHeader);
 }
