@@ -76,8 +76,11 @@ public interface ApiService {
     @GET("movies/{id}/reviews")
     Call<ReviewResponse> getMovieReviews(@Path("id") int movieId, @Query("all") boolean showAll);
 
+    @GET("movies/{id}/reviews")
+    Call<List<Review>> getAllMovieReviews(@Path("id") int movieId, @Query("all") boolean showAll);
+
     @PUT("movies/{id}/reviews")
-    Call<Review> submitReview(@Path("id") int movieId, @Body ReviewRequest reviewRequest);
+    Call<Review> submitReview(@Path("id") int movieId, @Body ReviewRequest reviewRequest, @Header("Authorization") String authHeader);
 
     // Watched
     @PUT("watched/{movie_id}")

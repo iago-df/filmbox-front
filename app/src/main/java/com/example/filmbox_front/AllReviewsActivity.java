@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -35,6 +37,9 @@ public class AllReviewsActivity extends AppCompatActivity {
     private ApiService apiService;
     private BottomNavigationView bottomNav;
     private TextView tvNoReviews;
+    private RatingBar ratingBarNew;
+    private EditText etReviewText;
+    private Button btnSubmitReview;
     private int movieId;
     private String authToken;
     private String username;
@@ -60,6 +65,7 @@ public class AllReviewsActivity extends AppCompatActivity {
         
         initViews();
         setupBottomNavigation();
+        setupReviewForm();
         loadAllReviews();
     }
 
@@ -67,6 +73,9 @@ public class AllReviewsActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerViewReviews);
         tvNoReviews = findViewById(R.id.tvNoReviews);
         bottomNav = findViewById(R.id.bottom_nav);
+        ratingBarNew = findViewById(R.id.ratingBarNew);
+        etReviewText = findViewById(R.id.etReviewText);
+        btnSubmitReview = findViewById(R.id.btnSubmitReview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
@@ -110,17 +119,105 @@ public class AllReviewsActivity extends AppCompatActivity {
         });
     }
 
-    private void loadAllReviews() {
-        Call<ReviewResponse> call = apiService.getMovieReviews(movieId, true);
-        call.enqueue(new Callback<ReviewResponse>() {
+    private void setupReviewForm() {
+        // Ocultar formulario si no hay token de autenticación
+        if (authToken == null) {
+            findViewById(R.id.cardCreateReview).setVisibility(View.GONE);
+            return;
+        }
+
+        btnSubmitReview.setOnClickListener(v -> {
+            float rating = ratingBarNew.getRating();
+            String comment = etReviewText.getText().toString().trim();
+
+            // Validar campos
+            if (comment.isEmpty()) {
+                Toast.makeText(this, "Debes escribir un comentario", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (rating < 1) {
+                Toast.makeText(this, "Debes dar una calificación", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Deshabilitar botón para evitar múltiples envíos
+            btnSubmitReview.setEnabled(false);
+            btnSubmitReview.setText("Enviando...");
+
+            // Crear y enviar review
+            ReviewRequest reviewRequest = new ReviewRequest(rating, comment);
+            submitReview(reviewRequest);
+        });
+    }
+
+    private void submitReview(ReviewRequest reviewRequest) {
+        // Validar que tengamos token de autenticación
+        if (authToken == null || authToken.isEmpty()) {
+            Toast.makeText(this, "Debes iniciar sesión para enviar reviews", Toast.LENGTH_SHORT).show();
+            btnSubmitReview.setEnabled(true);
+            btnSubmitReview.setText("Enviar Review");
+            return;
+        }
+
+        Call<Review> call = apiService.submitReview(movieId, reviewRequest, "Bearer " + authToken);
+        call.enqueue(new Callback<Review>() {
             @Override
-            public void onResponse(Call<ReviewResponse> call, Response<ReviewResponse> response) {
+            public void onResponse(Call<Review> call, Response<Review> response) {
+                // Restaurar botón
+                btnSubmitReview.setEnabled(true);
+                btnSubmitReview.setText("Enviar Review");
+
+                if (response.isSuccessful()) {
+                    Toast.makeText(AllReviewsActivity.this, "Review enviada correctamente", Toast.LENGTH_SHORT).show();
+                    
+                    // Limpiar formulario
+                    ratingBarNew.setRating(3);
+                    etReviewText.setText("");
+                    
+                    // Recargar reviews para mostrar la nueva
+                    loadAllReviews();
+                } else {
+                    String errorMsg = "Error al enviar review";
+                    if (response.code() == 400) {
+                        errorMsg = "Datos inválidos";
+                    } else if (response.code() == 401) {
+                        errorMsg = "Debes iniciar sesión";
+                    } else if (response.code() == 404) {
+                        errorMsg = "Película no encontrada";
+                    }
+                    Toast.makeText(AllReviewsActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Review> call, Throwable t) {
+                // Restaurar botón
+                btnSubmitReview.setEnabled(true);
+                btnSubmitReview.setText("Enviar Review");
+                
+                Toast.makeText(AllReviewsActivity.this, "Error de conexión: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void loadAllReviews() {
+        // Mostrar indicador de carga
+        tvNoReviews.setText("Cargando reviews...");
+        tvNoReviews.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.GONE);
+        
+        Call<List<Review>> call = apiService.getAllMovieReviews(movieId, true);
+        call.enqueue(new Callback<List<Review>>() {
+            @Override
+            public void onResponse(Call<List<Review>> call, Response<List<Review>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Review> reviews = response.body().getPreview();
+                    List<Review> reviews = response.body();
                     
                     if (reviews == null || reviews.isEmpty()) {
                         // Mostrar mensaje de no hay reviews
                         recyclerView.setVisibility(View.GONE);
+                        tvNoReviews.setText("No hay reviews para esta película");
                         tvNoReviews.setVisibility(View.VISIBLE);
                     } else {
                         // Mostrar reviews
@@ -130,13 +227,34 @@ public class AllReviewsActivity extends AppCompatActivity {
                         recyclerView.setAdapter(reviewAdapter);
                     }
                 } else {
-                    Toast.makeText(AllReviewsActivity.this, "Error al cargar reviews", Toast.LENGTH_SHORT).show();
+                    // Error específico según el código
+                    String errorMsg = "Error al cargar reviews";
+                    if (response.code() == 404) {
+                        errorMsg = "Película no encontrada";
+                    } else if (response.code() == 500) {
+                        errorMsg = "Error del servidor";
+                    }
+                    Toast.makeText(AllReviewsActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                    
+                    // Mostrar mensaje de error
+                    recyclerView.setVisibility(View.GONE);
+                    tvNoReviews.setText("Error: " + errorMsg);
+                    tvNoReviews.setVisibility(View.VISIBLE);
                 }
             }
 
             @Override
-            public void onFailure(Call<ReviewResponse> call, Throwable t) {
-                Toast.makeText(AllReviewsActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<List<Review>> call, Throwable t) {
+                String errorMsg = "Error de conexión";
+                if (t.getMessage() != null) {
+                    errorMsg = "Error de conexión: " + t.getMessage();
+                }
+                Toast.makeText(AllReviewsActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                
+                // Mostrar mensaje de error
+                recyclerView.setVisibility(View.GONE);
+                tvNoReviews.setText("No se pudieron cargar las reviews. Intenta de nuevo.");
+                tvNoReviews.setVisibility(View.VISIBLE);
             }
         });
     }
