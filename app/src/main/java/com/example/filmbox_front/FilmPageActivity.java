@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -133,8 +134,26 @@ public class FilmPageActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         btnTrailer.setOnClickListener(v -> {
-            // TODO: Implementar trailer
-            Toast.makeText(this, "Trailer próximamente", Toast.LENGTH_SHORT).show();
+            String trailerUrl = currentFilm.getTrailerUrl();
+            if (trailerUrl != null && !trailerUrl.isEmpty()) {
+                // Asegurarse de que la URL sea válida para YouTube
+                String youtubeUrl = trailerUrl;
+                
+                // Si es un ID de video de YouTube, construir la URL completa
+                if (!trailerUrl.startsWith("http://") && !trailerUrl.startsWith("https://")) {
+                    if (trailerUrl.length() == 11) { // Probablemente un ID de video de YouTube
+                        youtubeUrl = "https://www.youtube.com/watch?v=" + trailerUrl;
+                    } else {
+                        youtubeUrl = "https://www.youtube.com/watch?v=" + trailerUrl;
+                    }
+                }
+                
+                // Abrir URL del trailer
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(youtubeUrl));
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Trailer no disponible", Toast.LENGTH_SHORT).show();
+            }
         });
 
         btnActionVista.setOnClickListener(v -> toggleWatched());

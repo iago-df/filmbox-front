@@ -20,6 +20,9 @@ public class Film {
     @SerializedName("year")
     private int year;
 
+    @SerializedName("trailer_url")
+    private String trailer_url;
+
     // Django envía objetos Category completos, no solo IDs
     @SerializedName(value = "categories", alternate = {"categorias"})
     private List<Category> categories;
@@ -45,6 +48,10 @@ public class Film {
 
     public int getYear() {
         return year;
+    }
+
+    public String getTrailerUrl() {
+        return trailer_url;
     }
 
     // Extrae solo los IDs de las categorías
@@ -85,6 +92,10 @@ public class Film {
 
     public void setYear(int year) {
         this.year = year;
+    }
+
+    public void setTrailerUrl(String trailer_url) {
+        this.trailer_url = trailer_url;
     }
 
     public void setCategories(List<Category> categories) {
