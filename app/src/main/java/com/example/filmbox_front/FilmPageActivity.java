@@ -1,8 +1,11 @@
 package com.example.filmbox_front;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -12,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.squareup.picasso.Picasso;
 
@@ -27,9 +31,11 @@ public class FilmPageActivity extends AppCompatActivity {
     private TextView tvTitle, tvSubtitle, tvSynopsis, tvWriteReviewHint;
     private RatingBar ratingBar;
     private MaterialButton btnTrailer, btnActionVista, btnActionWatchlist, btnActionFavorites, btnAllReviews;
+    private BottomNavigationView bottomNav;
     
     private ApiService apiService;
     private String authToken;
+    private String username;
     private int movieId;
     private Film currentFilm;
     private boolean isWatched, isInWishlist, isFavorite;
@@ -52,11 +58,13 @@ public class FilmPageActivity extends AppCompatActivity {
         // Inicializar Retrofit
         apiService = RetrofitClient.getRetrofitInstance().create(ApiService.class);
         
-        // Obtener token de autenticación
+        // Obtener token de autenticación y username
         SharedPreferences prefs = getSharedPreferences("FilmBoxPrefs", MODE_PRIVATE);
-        authToken = prefs.getString("auth_token", null);
+        authToken = prefs.getString("SESSION_TOKEN", null);
+        username = prefs.getString("USERNAME", "Usuario");
 
         initViews();
+        setupBottomNavigation();
         setupClickListeners();
         loadMovieDetails();
         loadMovieReviews();
@@ -80,6 +88,47 @@ public class FilmPageActivity extends AppCompatActivity {
         btnActionWatchlist = findViewById(R.id.btnActionWatchlist);
         btnActionFavorites = findViewById(R.id.btnActionFavorites);
         btnAllReviews = findViewById(R.id.btnAllReviews);
+        bottomNav = findViewById(R.id.bottom_nav);
+    }
+
+    private void setupBottomNavigation() {
+        bottomNav.setItemIconTintList(null);
+        bottomNav.setItemActiveIndicatorEnabled(false);
+        bottomNav.setItemRippleColor(ColorStateList.valueOf(Color.TRANSPARENT));
+
+        getWindow().setNavigationBarColor(Color.WHITE);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        );
+
+        bottomNav.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_home) {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+                return true;
+
+            } else if (item.getItemId() == R.id.nav_search) {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("navigate_to", "search");
+                startActivity(intent);
+                finish();
+                return true;
+
+            } else if (item.getItemId() == R.id.nav_profile) {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("navigate_to", "profile");
+                intent.putExtra("SESSION_TOKEN", authToken);
+                intent.putExtra("USERNAME", username);
+                startActivity(intent);
+                finish();
+                return true;
+            }
+            return false;
+        });
     }
 
     private void setupClickListeners() {
@@ -212,9 +261,58 @@ public class FilmPageActivity extends AppCompatActivity {
     private void checkUserMovieStatus() {
         if (authToken == null) return;
 
-        // TODO: Implementar verificación de estado cuando el backend tenga los endpoints
-        // Por ahora asumimos valores por defecto
-        updateActionButtons();
+        String authHeader = "Bearer " + authToken;
+        
+        // Verificar si está en watched
+        apiService.getWatched(authHeader).enqueue(new Callback<List<FilmResponse>>() {
+            @Override
+            public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<FilmResponse> watched = response.body();
+                    isWatched = watched.stream().anyMatch(f -> f.id == movieId);
+                }
+                updateActionButtons();
+            }
+
+            @Override
+            public void onFailure(Call<List<FilmResponse>> call, Throwable t) {
+                updateActionButtons();
+            }
+        });
+
+        // Verificar si está en wishlist
+        apiService.getWishlist(authHeader).enqueue(new Callback<List<FilmResponse>>() {
+            @Override
+            public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<FilmResponse> wishlist = response.body();
+                    isInWishlist = wishlist.stream().anyMatch(f -> f.id == movieId);
+                }
+                updateActionButtons();
+            }
+
+            @Override
+            public void onFailure(Call<List<FilmResponse>> call, Throwable t) {
+                updateActionButtons();
+            }
+        });
+
+        // Verificar si es favorita
+        apiService.getFavoritesAuth(authHeader).enqueue(new Callback<List<FilmResponse>>() {
+            @Override
+            public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<FilmResponse> favorites = response.body();
+                    isFavorite = favorites.stream().anyMatch(f -> f.id == movieId);
+                }
+                updateActionButtons();
+            }
+
+            @Override
+            public void onFailure(Call<List<FilmResponse>> call, Throwable t) {
+                updateActionButtons();
+            }
+        });
     }
 
     private void updateActionButtons() {
@@ -238,10 +336,12 @@ public class FilmPageActivity extends AppCompatActivity {
         }
 
         Call<Void> call;
+        String authHeader = "Bearer " + authToken;
+        
         if (isWatched) {
-            call = apiService.removeFromWatched(movieId);
+            call = apiService.removeFromWatched(movieId, authHeader);
         } else {
-            call = apiService.markAsWatched(movieId);
+            call = apiService.markAsWatched(movieId, authHeader);
         }
 
         call.enqueue(new Callback<Void>() {
@@ -270,10 +370,12 @@ public class FilmPageActivity extends AppCompatActivity {
         }
 
         Call<Void> call;
+        String authHeader = "Bearer " + authToken;
+        
         if (isInWishlist) {
-            call = apiService.removeFromWishlist(movieId);
+            call = apiService.removeFromWishlist(movieId, authHeader);
         } else {
-            call = apiService.addToWishlist(movieId);
+            call = apiService.addToWishlist(movieId, authHeader);
         }
 
         call.enqueue(new Callback<Void>() {
@@ -302,10 +404,12 @@ public class FilmPageActivity extends AppCompatActivity {
         }
 
         Call<Void> call;
+        String authHeader = "Bearer " + authToken;
+        
         if (isFavorite) {
-            call = apiService.removeFavorite(movieId);
+            call = apiService.removeFavorite(movieId, authHeader);
         } else {
-            call = apiService.addFavorite(movieId);
+            call = apiService.addFavorite(movieId, authHeader);
         }
 
         call.enqueue(new Callback<Void>() {

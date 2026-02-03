@@ -1,5 +1,7 @@
 package com.example.filmbox_front;
 
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,10 +40,22 @@ public class MovieResultAdapter extends RecyclerView.Adapter<MovieResultAdapter.
         h.title.setText(m.title);
         h.meta.setText(m.year + " • " + m.duration + " min");
 
-        Glide.with(h.itemView.getContext())
+        Picasso.get()
                 .load(m.image_url)
+                .placeholder(R.drawable.ic_launcher_foreground)
+                .error(R.drawable.ic_launcher_foreground)
+                .fit()
                 .centerCrop()
                 .into(h.poster);
+
+        // Click listener para navegar a detalles de película
+        h.itemView.setOnClickListener(v -> {
+            Log.d("MovieResultAdapter", "Click en película: " + m.title + " (ID: " + m.id + ")");
+            Intent intent = new Intent(h.itemView.getContext(), FilmPageActivity.class);
+            intent.putExtra("movie_id", m.id);
+            Log.d("MovieResultAdapter", "Iniciando FilmPageActivity con movie_id: " + m.id);
+            h.itemView.getContext().startActivity(intent);
+        });
     }
 
     @Override

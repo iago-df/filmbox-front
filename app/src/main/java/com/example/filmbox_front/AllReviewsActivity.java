@@ -1,5 +1,10 @@
 package com.example.filmbox_front;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -27,7 +33,11 @@ public class AllReviewsActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ReviewAdapter reviewAdapter;
     private ApiService apiService;
+    private BottomNavigationView bottomNav;
+    private TextView tvNoReviews;
     private int movieId;
+    private String authToken;
+    private String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +53,61 @@ public class AllReviewsActivity extends AppCompatActivity {
 
         apiService = RetrofitClient.getRetrofitInstance().create(ApiService.class);
         
+        // Obtener token y username
+        SharedPreferences prefs = getSharedPreferences("FilmBoxPrefs", MODE_PRIVATE);
+        authToken = prefs.getString("SESSION_TOKEN", null);
+        username = prefs.getString("USERNAME", "Usuario");
+        
         initViews();
+        setupBottomNavigation();
         loadAllReviews();
     }
 
     private void initViews() {
         recyclerView = findViewById(R.id.recyclerViewReviews);
+        tvNoReviews = findViewById(R.id.tvNoReviews);
+        bottomNav = findViewById(R.id.bottom_nav);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
+
+    private void setupBottomNavigation() {
+        bottomNav.setItemIconTintList(null);
+        bottomNav.setItemActiveIndicatorEnabled(false);
+        bottomNav.setItemRippleColor(ColorStateList.valueOf(Color.TRANSPARENT));
+
+        getWindow().setNavigationBarColor(Color.WHITE);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        );
+
+        bottomNav.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_home) {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+                return true;
+
+            } else if (item.getItemId() == R.id.nav_search) {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("navigate_to", "search");
+                startActivity(intent);
+                finish();
+                return true;
+
+            } else if (item.getItemId() == R.id.nav_profile) {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("navigate_to", "profile");
+                intent.putExtra("SESSION_TOKEN", authToken);
+                intent.putExtra("USERNAME", username);
+                startActivity(intent);
+                finish();
+                return true;
+            }
+            return false;
+        });
     }
 
     private void loadAllReviews() {
@@ -59,8 +117,18 @@ public class AllReviewsActivity extends AppCompatActivity {
             public void onResponse(Call<ReviewResponse> call, Response<ReviewResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Review> reviews = response.body().getPreview();
-                    reviewAdapter = new ReviewAdapter(reviews);
-                    recyclerView.setAdapter(reviewAdapter);
+                    
+                    if (reviews == null || reviews.isEmpty()) {
+                        // Mostrar mensaje de no hay reviews
+                        recyclerView.setVisibility(View.GONE);
+                        tvNoReviews.setVisibility(View.VISIBLE);
+                    } else {
+                        // Mostrar reviews
+                        recyclerView.setVisibility(View.VISIBLE);
+                        tvNoReviews.setVisibility(View.GONE);
+                        reviewAdapter = new ReviewAdapter(reviews);
+                        recyclerView.setAdapter(reviewAdapter);
+                    }
                 } else {
                     Toast.makeText(AllReviewsActivity.this, "Error al cargar reviews", Toast.LENGTH_SHORT).show();
                 }

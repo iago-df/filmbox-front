@@ -9,7 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,9 +37,12 @@ public class UserResultAdapter extends RecyclerView.Adapter<UserResultAdapter.VH
         UserLite u = items.get(position);
         h.username.setText(u.username);
 
-        Glide.with(h.itemView.getContext())
+        Picasso.get()
                 .load(u.avatar_url)
-                .circleCrop()
+                .placeholder(R.drawable.ic_launcher_foreground)
+                .error(R.drawable.ic_launcher_foreground)
+                .fit()
+                .centerCrop()
                 .into(h.avatar);
     }
 

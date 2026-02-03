@@ -70,7 +70,7 @@ public class WishlistFragment extends Fragment {
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
 
         // Adaptador vacío inicial
-        MovieAdapter adapter = new MovieAdapter(requireContext(), new ArrayList<>(), pos -> {});
+        MovieAdapter adapter = MovieAdapter.createWithUrlsOnly(requireContext(), new ArrayList<>(), pos -> {});
         recyclerView.setAdapter(adapter);
 
         // Cargar wishlist
@@ -107,11 +107,11 @@ public class WishlistFragment extends Fragment {
                     final List<Integer> idsToSet = ids;
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
-                            adapter.updateData(urlsToSet, idsToSet);
+                            adapter.updateUrlsData(urlsToSet, idsToSet);
                             Log.d("WishlistFragment", "Adapter actualizado con " + urlsToSet.size() + " imágenes");
                         });
                     } else {
-                        adapter.updateData(urlsToSet, idsToSet);
+                        adapter.updateUrlsData(urlsToSet, idsToSet);
                     }
                 } else {
                     if (response.isSuccessful() && response.body() == null) {

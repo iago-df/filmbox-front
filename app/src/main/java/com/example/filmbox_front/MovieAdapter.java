@@ -47,9 +47,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         this.useFilmLite = false;
     }
 
-    // Constructor para solo URLs (legacy - no puede navegar a detalles)
-    public MovieAdapter(Context context, List<String> movieUrls, OnMovieClickListener listener) {
-        this(context, movieUrls, new ArrayList<>(), listener);
+    // Factory method para solo URLs (legacy - no puede navegar a detalles)
+    public static MovieAdapter createWithUrlsOnly(Context context, List<String> movieUrls, OnMovieClickListener listener) {
+        return new MovieAdapter(context, movieUrls, new ArrayList<>(), listener);
     }
 
     @NonNull
@@ -62,7 +62,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     @Override
     public void onBindViewHolder(@NonNull MovieViewHolder holder, int position) {
         String imageUrl;
-        int movieId = -1;
+        final int movieId;
 
         if (useFilmLite) {
             // Modo FilmLite
@@ -75,9 +75,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 imageUrl = movieUrls.get(position);
                 if (position < movieIds.size()) {
                     movieId = movieIds.get(position);
+                } else {
+                    movieId = -1;
                 }
             } else {
                 imageUrl = null;
+                movieId = -1;
             }
         }
         
@@ -130,13 +133,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     }
 
     // Update methods para ambos modos
-    public void updateData(List<FilmLite> newMovies) {
+    public void updateFilmLiteData(List<FilmLite> newMovies) {
         this.movies = newMovies;
         this.useFilmLite = true;
         notifyDataSetChanged();
     }
 
-    public void updateData(List<String> newUrls, List<Integer> newIds) {
+    public void updateUrlsData(List<String> newUrls, List<Integer> newIds) {
         this.movieUrls = newUrls;
         this.movieIds = newIds != null ? newIds : new ArrayList<>();
         this.useFilmLite = false;
@@ -144,8 +147,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     }
 
     // Legacy method - solo URLs
-    public void updateData(List<String> newUrls) {
-        updateData(newUrls, new ArrayList<>());
+    public void updateUrlsData(List<String> newUrls) {
+        updateUrlsData(newUrls, new ArrayList<>());
     }
 }
 

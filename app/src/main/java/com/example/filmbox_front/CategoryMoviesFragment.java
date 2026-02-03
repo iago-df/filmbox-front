@@ -52,7 +52,7 @@ public class CategoryMoviesFragment extends Fragment {
         });
 
         rv.setLayoutManager(new GridLayoutManager(getContext(), 3));
-        PosterGridAdapter adapter = new PosterGridAdapter();
+        PosterGridAdapter adapter = new PosterGridAdapter(requireContext());
         rv.setAdapter(adapter);
 
         RetrofitClient.api().categoryMovies(categoryId).enqueue(new Callback<List<FilmLite>>() {

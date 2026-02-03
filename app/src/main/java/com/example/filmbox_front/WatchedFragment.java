@@ -55,7 +55,7 @@ public class WatchedFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.watched_recycler);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
-        MovieAdapter adapter = new MovieAdapter(requireContext(), new ArrayList<>(), pos -> {});
+        MovieAdapter adapter = MovieAdapter.createWithUrlsOnly(requireContext(), new ArrayList<>(), pos -> {});
         recyclerView.setAdapter(adapter);
 
         loadWatchedMovies(adapter);
@@ -71,8 +71,8 @@ public class WatchedFragment extends Fragment {
             @Override
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<String> urls = new ArrayList<>();
-                    List<Integer> ids = new ArrayList<>();
+                    final List<String> urls = new ArrayList<>();
+                    final List<Integer> ids = new ArrayList<>();
                     for (FilmResponse f : response.body()) {
                         if (f != null && f.image_url != null && !f.image_url.isEmpty()) {
                             urls.add(buildFullImageUrl(f.image_url));
@@ -80,9 +80,9 @@ public class WatchedFragment extends Fragment {
                         }
                     }
                     if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> adapter.updateData(urls, ids));
+                        getActivity().runOnUiThread(() -> adapter.updateUrlsData(urls, ids));
                     } else {
-                        adapter.updateData(urls, ids);
+                        adapter.updateUrlsData(urls, ids);
                     }
                 }
             }

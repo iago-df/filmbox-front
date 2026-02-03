@@ -438,7 +438,7 @@
                 android:background="#E0E0E0"
                 app:layout_constraintTop_toBottomOf="@id/reviewJose" />
 
-            <TextView
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAllReviews"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -457,10 +457,19 @@
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?android:attr/windowBackground"
-        app:menu="@menu/my_bottom_menu"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:layout_width="0dp"
+        android:layout_height="110dp"
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="unlabeled"
+        android:background="@android:color/white"
+
+        app:itemIconSize="34dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp"
+        app:itemIconTint="@null"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
