@@ -1,6 +1,7 @@
 package com.example.filmbox_front;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 import java.util.List;
 
 import retrofit2.Call;
@@ -42,13 +43,25 @@ public class FilmAdapter extends RecyclerView.Adapter<FilmAdapter.FilmViewHolder
         holder.tvMovieTitle.setText(film.getTitle());
         holder.tvMovieYear.setText(String.valueOf(film.getYear()));
 
-        Glide.with(context)
+        Picasso.get()
                 .load(film.getImageUrl())
                 .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_menu_gallery)
+                .fit()
+                .centerCrop()
                 .into(holder.imgFilm);
 
         // Cargar estado inicial de favoritos
         cargarEstadoFavorite(film, holder);
+
+        // Click listener para navegar a detalles de película
+        holder.itemView.setOnClickListener(v -> {
+            android.util.Log.d("FilmAdapter", "Click en película: " + film.getTitle() + " (ID: " + film.getId() + ")");
+            Intent intent = new Intent(context, FilmPageActivity.class);
+            intent.putExtra("movie_id", film.getId());
+            android.util.Log.d("FilmAdapter", "Iniciando FilmPageActivity con movie_id: " + film.getId());
+            context.startActivity(intent);
+        });
 
         holder.imgFavorite.setOnClickListener(v -> {
             int movieId = film.getId();

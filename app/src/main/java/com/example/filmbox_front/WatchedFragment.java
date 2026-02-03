@@ -72,15 +72,17 @@ public class WatchedFragment extends Fragment {
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<String> urls = new ArrayList<>();
+                    List<Integer> ids = new ArrayList<>();
                     for (FilmResponse f : response.body()) {
                         if (f != null && f.image_url != null && !f.image_url.isEmpty()) {
                             urls.add(buildFullImageUrl(f.image_url));
+                            ids.add(f.id);
                         }
                     }
                     if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> adapter.updateData(urls));
+                        getActivity().runOnUiThread(() -> adapter.updateData(urls, ids));
                     } else {
-                        adapter.updateData(urls);
+                        adapter.updateData(urls, ids);
                     }
                 }
             }

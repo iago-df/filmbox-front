@@ -94,21 +94,24 @@ public class WishlistFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     List<FilmResponse> body = response.body();
                     List<String> urls = new ArrayList<>();
+                    List<Integer> ids = new ArrayList<>();
                     for (FilmResponse film : body) {
                         if (film != null && film.image_url != null && !film.image_url.isEmpty()) {
                             urls.add(buildFullImageUrl(film.image_url));
+                            ids.add(film.id);
                         }
                     }
                     Log.d("WishlistFragment", "Películas recibidas: " + body.size() + ", URLs de imagen: " + urls.size());
 
                     final List<String> urlsToSet = urls;
+                    final List<Integer> idsToSet = ids;
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
-                            adapter.updateData(urlsToSet);
+                            adapter.updateData(urlsToSet, idsToSet);
                             Log.d("WishlistFragment", "Adapter actualizado con " + urlsToSet.size() + " imágenes");
                         });
                     } else {
-                        adapter.updateData(urlsToSet);
+                        adapter.updateData(urlsToSet, idsToSet);
                     }
                 } else {
                     if (response.isSuccessful() && response.body() == null) {

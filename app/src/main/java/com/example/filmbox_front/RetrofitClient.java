@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public final class RetrofitClient {
 
     // Emulador
-    private static final String BASE_URL = "http://192.168.1.129:8000/";
+    private static final String BASE_URL = "http://10.0.2.2:8000/";
 
     private static Retrofit retrofit;
     private static ApiService apiService;
@@ -32,5 +32,9 @@ public final class RetrofitClient {
             apiService = getRetrofit().create(ApiService.class);
         }
         return apiService;
+    }
+
+    public static Retrofit getRetrofitInstance() {
+        return getRetrofit();
     }
 }
