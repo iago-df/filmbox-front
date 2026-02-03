@@ -2,6 +2,7 @@ package com.example.filmbox_front;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -12,19 +13,12 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class FavoritesFragment extends Fragment {
 
@@ -43,6 +37,7 @@ public class FavoritesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // 1) Token: args -> prefs
         if (getArguments() != null) {
             String fromArgs = getArguments().getString("SESSION_TOKEN", "");
             if (fromArgs != null && !fromArgs.isEmpty()) sessionToken = fromArgs;
@@ -52,22 +47,52 @@ public class FavoritesFragment extends Fragment {
             sessionToken = prefs.getString(TOKEN_KEY, "");
         }
 
+        // 2) API
         api = RetrofitClient.getApiService();
 
+        // 3) RecyclerView grid
         RecyclerView recyclerView = view.findViewById(R.id.favorites_recycler);
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
+        recyclerView.setHasFixedSize(true);
+
+        final int spanCount = 3;
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
+
+        // Importante: NO padding lateral aquí (lo controlas con márgenes en XML)
+        while (recyclerView.getItemDecorationCount() > 0) {
+            recyclerView.removeItemDecorationAt(0);
+        }
+
+        final int spacing = dp(8); // prueba dp(6) si lo quieres más compacto
+        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull Rect outRect, @NonNull View v,
+                                       @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                int position = parent.getChildAdapterPosition(v);
+                if (position == RecyclerView.NO_POSITION) return;
+
+                int column = position % spanCount;
+
+                outRect.left = spacing - column * spacing / spanCount;
+                outRect.right = (column + 1) * spacing / spanCount;
+
+                if (position < spanCount) outRect.top = spacing;
+                outRect.bottom = spacing;
+            }
+        });
+
         MovieAdapter adapter = new MovieAdapter(requireContext(), new ArrayList<>(), pos -> {});
         recyclerView.setAdapter(adapter);
 
         loadFavorites(adapter);
 
-        ImageView backArrow = view.findViewById(R.id.back_arrow);
-        backArrow.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
+        // 4) Flecha volver
+        ImageView ivBack = view.findViewById(R.id.ivBack);
+        ivBack.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
     }
 
     private void loadFavorites(MovieAdapter adapter) {
         if (sessionToken == null || sessionToken.isEmpty()) return;
-        // CORREGIDO: usar getFavoritesAuth en lugar de getFavorites
+
         api.getFavoritesAuth("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
             @Override
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
@@ -78,6 +103,7 @@ public class FavoritesFragment extends Fragment {
                             urls.add(buildFullImageUrl(f.image_url));
                         }
                     }
+
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> adapter.updateData(urls));
                     } else {
@@ -91,6 +117,10 @@ public class FavoritesFragment extends Fragment {
                 t.printStackTrace();
             }
         });
+    }
+
+    private int dp(int v) {
+        return Math.round(v * getResources().getDisplayMetrics().density);
     }
 
     private static String buildFullImageUrl(String imageUrl) {

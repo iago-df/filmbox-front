@@ -1,5 +1,9 @@
 package com.example.filmbox_front;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -17,8 +21,6 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ProfileFragment extends Fragment {
 
@@ -36,160 +38,138 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Obtener argumentos de forma segura
-        if(getArguments() != null) {
+        // Args
+        if (getArguments() != null) {
             sessionToken = getArguments().getString("SESSION_TOKEN", "");
             username = getArguments().getString("USERNAME", "Usuario");
         }
 
         api = RetrofitClient.getApiService();
 
-        // Foto de perfil predeterminada
+        // UI perfil
         ImageView profileImage = view.findViewById(R.id.profile_image);
-        profileImage.setImageResource(R.drawable.ic_profile_grey);
+        profileImage.setImageResource(R.drawable.ic_profile_image);
 
-        // Nombre de usuario
         TextView usernameText = view.findViewById(R.id.username_text);
         usernameText.setText(username);
 
-        // Cargar películas solo si hay token
-        if(!sessionToken.isEmpty()) {
+        // Headers clickable
+        View watchedHeader = view.findViewById(R.id.watched_header);
+        View favoritesHeader = view.findViewById(R.id.favorites_header);
+        View wishlistHeader = view.findViewById(R.id.wishlist_header);
+
+        watchedHeader.setOnClickListener(v -> openWatched());
+        favoritesHeader.setOnClickListener(v -> openFavorites());
+        wishlistHeader.setOnClickListener(v -> openWishlist());
+
+        // Cargar previews solo si hay token
+        if (sessionToken != null && !sessionToken.isEmpty()) {
             loadWatchedMovies(view);
             loadFavoriteMovies(view);
             loadWishlistMovies(view);
-
-            ImageView watchedArrow = view.findViewById(R.id.watched_arrow);
-            watchedArrow.setOnClickListener(v -> {
-                WatchedFragment fragment = new WatchedFragment();
-                Bundle args = new Bundle();
-                args.putString("SESSION_TOKEN", sessionToken);
-                fragment.setArguments(args);
-
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, fragment)
-                        .addToBackStack(null)
-                        .commit();
-            });
-
-            ImageView favoritesArrow = view.findViewById(R.id.favorites_arrow);
-
-            favoritesArrow.setOnClickListener(v -> {
-                FavoritesFragment fragment = new FavoritesFragment();
-
-                Bundle args = new Bundle();
-                args.putString("SESSION_TOKEN", sessionToken);
-                fragment.setArguments(args);
-
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, fragment)
-                        .addToBackStack(null)
-                        .commit();
-            });
-
-            ImageView wishlistArrow = view.findViewById(R.id.wishlist_arrow);
-
-            wishlistArrow.setOnClickListener(v -> {
-                WishlistFragment fragment = new WishlistFragment();
-
-                Bundle args = new Bundle();
-                args.putString("SESSION_TOKEN", sessionToken);
-                fragment.setArguments(args);
-
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, fragment)
-                        .addToBackStack(null)
-                        .commit();
-            });
         }
+
+        view.findViewById(R.id.logout_button).setOnClickListener(v -> {
+            // borrar token
+            SharedPreferences prefs = requireContext().getSharedPreferences("FilmBoxPrefs", Context.MODE_PRIVATE);
+            prefs.edit().remove("SESSION_TOKEN").remove("USERNAME").apply();
+
+            Intent i = new Intent(requireContext(), LoginActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+        });
+
     }
 
-    private void loadWatchedMovies(View view) {
+    // -------- Navegación --------
+
+    private void openWatched() {
+        WatchedFragment fragment = new WatchedFragment();
+        Bundle args = new Bundle();
+        args.putString("SESSION_TOKEN", sessionToken);
+        fragment.setArguments(args);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void openFavorites() {
+        FavoritesFragment fragment = new FavoritesFragment();
+        Bundle args = new Bundle();
+        args.putString("SESSION_TOKEN", sessionToken);
+        fragment.setArguments(args);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void openWishlist() {
+        WishlistFragment fragment = new WishlistFragment();
+        Bundle args = new Bundle();
+        args.putString("SESSION_TOKEN", sessionToken);
+        fragment.setArguments(args);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    // -------- Setup Recycler horizontal con separación --------
+
+    private void setupHorizontalPreviewRecycler(RecyclerView rv) {
+        rv.setHasFixedSize(true);
+        rv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+
+        // Evitar duplicar decoraciones
+        while (rv.getItemDecorationCount() > 0) {
+            rv.removeItemDecorationAt(0);
+        }
+
+        final int space = dp(10); // separación entre posters
+
+        rv.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull Rect outRect, @NonNull View v,
+                                       @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                int pos = parent.getChildAdapterPosition(v);
+                if (pos == RecyclerView.NO_POSITION) return;
+
+                // Tu XML ya tiene paddingStart/End=24dp en el RecyclerView,
+                // así que aquí solo metemos separación entre items.
+                outRect.left = (pos == 0) ? 0 : space;
+                outRect.right = 0;
+                outRect.top = 0;
+                outRect.bottom = 0;
+            }
+        });
+    }
+
+    // -------- Cargar datos --------
+
+    private void loadWatchedMovies(View root) {
         api.getWatched("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
             @Override
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
-                if(response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful() && response.body() != null) {
+
                     List<String> urls = new ArrayList<>();
-                    for(FilmResponse f : response.body()) {
-                        urls.add(buildFullImageUrl(f.image_url));
-                    }
-
-                    RecyclerView watchedRecycler = view.findViewById(R.id.watched_recycler);
-                    watchedRecycler.setLayoutManager(
-                            new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                    watchedRecycler.setAdapter(new MovieAdapter(getContext(), urls, position -> {
-                        // click en la película
-                    }));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<FilmResponse>> call, Throwable t) {
-                t.printStackTrace();
-            }
-        });
-    }
-
-    private void loadFavoriteMovies(View view) {
-        // CORREGIDO: usar getFavoritesAuth en lugar de getFavorites
-        api.getFavoritesAuth("Bearer " + sessionToken)
-                .enqueue(new Callback<List<FilmResponse>>() {
-
-                    @Override
-                    public void onResponse(Call<List<FilmResponse>> call,
-                                           Response<List<FilmResponse>> response) {
-
-                        if (response.isSuccessful() && response.body() != null) {
-
-                            List<String> urls = new ArrayList<>();
-                            for (FilmResponse f : response.body()) {
-                                urls.add(buildFullImageUrl(f.image_url));
-                            }
-
-                            RecyclerView favoritesRecycler =
-                                    view.findViewById(R.id.favorites_recycler);
-
-                            favoritesRecycler.setLayoutManager(
-                                    new LinearLayoutManager(
-                                            requireContext(),
-                                            LinearLayoutManager.HORIZONTAL,
-                                            false
-                                    )
-                            );
-
-                            favoritesRecycler.setAdapter(
-                                    new MovieAdapter(requireContext(), urls, position -> {
-                                        // click en favorita
-                                    })
-                            );
+                    for (FilmResponse f : response.body()) {
+                        if (f != null && f.image_url != null && !f.image_url.isEmpty()) {
+                            urls.add(buildFullImageUrl(f.image_url));
                         }
                     }
 
-                    @Override
-                    public void onFailure(Call<List<FilmResponse>> call, Throwable t) {
-                        t.printStackTrace();
-                    }
-                });
-    }
-
-    private void loadWishlistMovies(View view) {
-        api.getWishlist("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
-            @Override
-            public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
-                if(response.isSuccessful() && response.body() != null) {
-                    List<String> urls = new ArrayList<>();
-                    for(FilmResponse f : response.body()) {
-                        urls.add(buildFullImageUrl(f.image_url));
-                    }
-
-                    RecyclerView wishlistRecycler = view.findViewById(R.id.wishlist_recycler);
-                    wishlistRecycler.setLayoutManager(
-                            new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                    wishlistRecycler.setAdapter(new MovieAdapter(getContext(), urls, position -> {
-                        // click en la película
-                    }));
+                    RecyclerView rv = root.findViewById(R.id.watched_recycler);
+                    setupHorizontalPreviewRecycler(rv);
+                    rv.setAdapter(new MovieAdapter(requireContext(), urls, position -> {}));
                 }
             }
 
@@ -200,7 +180,64 @@ public class ProfileFragment extends Fragment {
         });
     }
 
-    // NUEVO: Método helper para construir URLs completas
+    private void loadFavoriteMovies(View root) {
+        api.getFavoritesAuth("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
+            @Override
+            public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+
+                    List<String> urls = new ArrayList<>();
+                    for (FilmResponse f : response.body()) {
+                        if (f != null && f.image_url != null && !f.image_url.isEmpty()) {
+                            urls.add(buildFullImageUrl(f.image_url));
+                        }
+                    }
+
+                    RecyclerView rv = root.findViewById(R.id.favorites_recycler);
+                    setupHorizontalPreviewRecycler(rv);
+                    rv.setAdapter(new MovieAdapter(requireContext(), urls, position -> {}));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<FilmResponse>> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void loadWishlistMovies(View root) {
+        api.getWishlist("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
+            @Override
+            public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+
+                    List<String> urls = new ArrayList<>();
+                    for (FilmResponse f : response.body()) {
+                        if (f != null && f.image_url != null && !f.image_url.isEmpty()) {
+                            urls.add(buildFullImageUrl(f.image_url));
+                        }
+                    }
+
+                    RecyclerView rv = root.findViewById(R.id.wishlist_recycler);
+                    setupHorizontalPreviewRecycler(rv);
+                    rv.setAdapter(new MovieAdapter(requireContext(), urls, position -> {}));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<FilmResponse>> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
+    }
+
+    // -------- Utils --------
+
+    private int dp(int v) {
+        return Math.round(v * getResources().getDisplayMetrics().density);
+    }
+
     private String buildFullImageUrl(String imageUrl) {
         if (imageUrl == null || imageUrl.isEmpty()) return imageUrl;
         if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
