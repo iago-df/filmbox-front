@@ -143,24 +143,24 @@ public class SearchFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         // Views
-        TextView tvBuscar = view.findViewById(R.id.tvBuscar);
-        ImageView ivSearchIcon = view.findViewById(R.id.ivSearchIcon);
-        EditText etSearch = view.findViewById(R.id.etSearch);
+        final TextView tvBuscar = view.findViewById(R.id.tvBuscar);
+        final ImageView ivSearchIcon = view.findViewById(R.id.ivSearchIcon);
+        final EditText etSearch = view.findViewById(R.id.etSearch);
 
-        View searchBox = view.findViewById(R.id.searchBox);
-        View divider = view.findViewById(R.id.dividerSearchExplorar);
+        final View searchBox = view.findViewById(R.id.searchBox);
+        final View divider = view.findViewById(R.id.dividerSearchExplorar);
 
-        TextView tvExplorar = view.findViewById(R.id.tvExplorar);
-        RecyclerView rvCategories = view.findViewById(R.id.rvCategories);
+        final TextView tvExplorar = view.findViewById(R.id.tvExplorar);
+        final RecyclerView rvCategories = view.findViewById(R.id.rvCategories);
 
-        TextView tvRecientes = view.findViewById(R.id.tvRecientes);
-        RecyclerView rvRecientes = view.findViewById(R.id.rvRecientes);
+        final TextView tvRecientes = view.findViewById(R.id.tvRecientes);
+        final RecyclerView rvRecientes = view.findViewById(R.id.rvRecientes);
 
-        ChipGroup chipGroup = view.findViewById(R.id.chipGroup);
-        Chip chipMovies = view.findViewById(R.id.chipMovies);
-        Chip chipUsers = view.findViewById(R.id.chipUsers);
+        final ChipGroup chipGroup = view.findViewById(R.id.chipGroup);
+        final Chip chipMovies = view.findViewById(R.id.chipMovies);
+        final Chip chipUsers = view.findViewById(R.id.chipUsers);
 
-        RecyclerView rvResults = view.findViewById(R.id.rvResults);
+        final RecyclerView rvResults = view.findViewById(R.id.rvResults);
 
         // Categories
         rvCategories.setLayoutManager(new GridLayoutManager(getContext(), 2));
@@ -179,13 +179,13 @@ public class SearchFragment extends Fragment {
 
 
         // Recents
-        RecentAdapter recentAdapter = new RecentAdapter();
+        final RecentAdapter recentAdapter = new RecentAdapter();
         rvRecientes.setLayoutManager(new LinearLayoutManager(getContext()));
         rvRecientes.setAdapter(recentAdapter);
 
         // Results (movies/users)
-        MovieResultAdapter movieAdapter = new MovieResultAdapter();
-        UserResultAdapter userAdapter = new UserResultAdapter();
+        final MovieResultAdapter movieAdapter = new MovieResultAdapter();
+        final UserResultAdapter userAdapter = new UserResultAdapter();
 
         rvResults.setLayoutManager(new LinearLayoutManager(getContext()));
         rvResults.setAdapter(movieAdapter);

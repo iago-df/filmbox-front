@@ -1,6 +1,8 @@
 package com.example.filmbox_front;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 import java.util.List;
 
 import retrofit2.Call;
@@ -42,13 +44,25 @@ public class FilmAdapter extends RecyclerView.Adapter<FilmAdapter.FilmViewHolder
         holder.tvMovieTitle.setText(film.getTitle());
         holder.tvMovieYear.setText(String.valueOf(film.getYear()));
 
-        Glide.with(context)
+        Picasso.get()
                 .load(film.getImageUrl())
                 .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_menu_gallery)
+                .fit()
+                .centerCrop()
                 .into(holder.imgFilm);
 
         // Cargar estado inicial de favoritos
         cargarEstadoFavorite(film, holder);
+
+        // Click listener para navegar a detalles de película
+        holder.itemView.setOnClickListener(v -> {
+            android.util.Log.d("FilmAdapter", "Click en película: " + film.getTitle() + " (ID: " + film.getId() + ")");
+            Intent intent = new Intent(context, FilmPageActivity.class);
+            intent.putExtra("movie_id", film.getId());
+            android.util.Log.d("FilmAdapter", "Iniciando FilmPageActivity con movie_id: " + film.getId());
+            context.startActivity(intent);
+        });
 
         holder.imgFavorite.setOnClickListener(v -> {
             int movieId = film.getId();
@@ -65,10 +79,10 @@ public class FilmAdapter extends RecyclerView.Adapter<FilmAdapter.FilmViewHolder
             Call<Void> call;
             if (newState) {
                 // Llama al método PUT de vuestra FavoriteFilmView
-                call = apiService.addFavorite(movieId);
+                call = apiService.addFavorite(movieId, "Bearer " + getAuthToken());
             } else {
                 // Llama al método DELETE de vuestra FavoriteFilmView
-                call = apiService.removeFavorite(movieId);
+                call = apiService.removeFavorite(movieId, "Bearer " + getAuthToken());
             }
 
             call.enqueue(new Callback<Void>() {
@@ -107,29 +121,46 @@ public class FilmAdapter extends RecyclerView.Adapter<FilmAdapter.FilmViewHolder
     }
 
     private void cargarEstadoFavorite(Film film, FilmViewHolder holder) {
-        // Verificar si la película está en favoritos
-        apiService.getFavorites().enqueue(new Callback<List<Film>>() {
+        // Usar la lista de favoritos completa para verificar si es favorita
+        String authToken = getAuthToken();
+        if (authToken == null) {
+            // Si no hay token, asumimos que no es favorita
+            film.setFavorite(false);
+            holder.imgFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+            return;
+        }
+
+        apiService.getFavoritesAuth("Bearer " + authToken).enqueue(new Callback<List<FilmResponse>>() {
             @Override
-            public void onResponse(Call<List<Film>> call, Response<List<Film>> response) {
+            public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Film> favorites = response.body();
-                    boolean esFavorita = favorites.stream().anyMatch(f -> f.getId() == film.getId());
+                    List<FilmResponse> favorites = response.body();
+                    boolean esFavorita = favorites.stream().anyMatch(f -> f.id == film.getId());
                     film.setFavorite(esFavorita);
                     
                     // Actualizar el estado visual
                     holder.imgFavorite.setImageResource(esFavorita ?
                             android.R.drawable.btn_star_big_on :
                             android.R.drawable.btn_star_big_off);
+                } else {
+                    // Si hay error, asumimos que no es favorita
+                    film.setFavorite(false);
+                    holder.imgFavorite.setImageResource(android.R.drawable.btn_star_big_off);
                 }
             }
 
             @Override
-            public void onFailure(Call<List<Film>> call, Throwable t) {
+            public void onFailure(Call<List<FilmResponse>> call, Throwable t) {
                 // Si falla la carga, asumimos que no es favorita
                 film.setFavorite(false);
                 holder.imgFavorite.setImageResource(android.R.drawable.btn_star_big_off);
             }
         });
+    }
+
+    private String getAuthToken() {
+        SharedPreferences prefs = context.getSharedPreferences("FilmBoxPrefs", Context.MODE_PRIVATE);
+        return prefs.getString("SESSION_TOKEN", null);
     }
 
     @Override

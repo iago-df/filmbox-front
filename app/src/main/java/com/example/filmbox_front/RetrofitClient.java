@@ -33,4 +33,8 @@ public final class RetrofitClient {
         }
         return apiService;
     }
+
+    public static Retrofit getRetrofitInstance() {
+        return getRetrofit();
+    }
 }

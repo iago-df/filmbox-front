@@ -70,7 +70,6 @@ public class ProfileFragment extends Fragment {
         }
 
         view.findViewById(R.id.logout_button).setOnClickListener(v -> {
-            // borrar token
             SharedPreferences prefs = requireContext().getSharedPreferences("FilmBoxPrefs", Context.MODE_PRIVATE);
             prefs.edit().remove("SESSION_TOKEN").remove("USERNAME").apply();
 
@@ -78,7 +77,6 @@ public class ProfileFragment extends Fragment {
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(i);
         });
-
     }
 
     // -------- Navegación --------
@@ -128,12 +126,11 @@ public class ProfileFragment extends Fragment {
         rv.setHasFixedSize(true);
         rv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
-        // Evitar duplicar decoraciones
         while (rv.getItemDecorationCount() > 0) {
             rv.removeItemDecorationAt(0);
         }
 
-        final int space = dp(10); // separación entre posters
+        final int space = dp(10);
 
         rv.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
@@ -142,8 +139,6 @@ public class ProfileFragment extends Fragment {
                 int pos = parent.getChildAdapterPosition(v);
                 if (pos == RecyclerView.NO_POSITION) return;
 
-                // Tu XML ya tiene paddingStart/End=24dp en el RecyclerView,
-                // así que aquí solo metemos separación entre items.
                 outRect.left = (pos == 0) ? 0 : space;
                 outRect.right = 0;
                 outRect.top = 0;
@@ -158,18 +153,25 @@ public class ProfileFragment extends Fragment {
         api.getWatched("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
             @Override
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                if (!isAdded() || getContext() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
 
                     List<String> urls = new ArrayList<>();
+                    List<Integer> ids = new ArrayList<>();
+
                     for (FilmResponse f : response.body()) {
                         if (f != null && f.image_url != null && !f.image_url.isEmpty()) {
                             urls.add(buildFullImageUrl(f.image_url));
+                            ids.add(f.id);
                         }
                     }
 
                     RecyclerView rv = root.findViewById(R.id.watched_recycler);
                     setupHorizontalPreviewRecycler(rv);
-                    rv.setAdapter(new MovieAdapter(requireContext(), urls, position -> {}));
+
+                    MovieAdapter adapter = MovieAdapter.createWithUrlsOnly(getContext(), urls, position -> {});
+                    adapter.updateUrlsData(urls, ids);
+                    rv.setAdapter(adapter);
                 }
             }
 
@@ -184,18 +186,25 @@ public class ProfileFragment extends Fragment {
         api.getFavoritesAuth("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
             @Override
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                if (!isAdded() || getContext() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
 
                     List<String> urls = new ArrayList<>();
+                    List<Integer> ids = new ArrayList<>();
+
                     for (FilmResponse f : response.body()) {
                         if (f != null && f.image_url != null && !f.image_url.isEmpty()) {
                             urls.add(buildFullImageUrl(f.image_url));
+                            ids.add(f.id);
                         }
                     }
 
                     RecyclerView rv = root.findViewById(R.id.favorites_recycler);
                     setupHorizontalPreviewRecycler(rv);
-                    rv.setAdapter(new MovieAdapter(requireContext(), urls, position -> {}));
+
+                    MovieAdapter adapter = MovieAdapter.createWithUrlsOnly(getContext(), urls, position -> {});
+                    adapter.updateUrlsData(urls, ids);
+                    rv.setAdapter(adapter);
                 }
             }
 
@@ -210,18 +219,25 @@ public class ProfileFragment extends Fragment {
         api.getWishlist("Bearer " + sessionToken).enqueue(new Callback<List<FilmResponse>>() {
             @Override
             public void onResponse(Call<List<FilmResponse>> call, Response<List<FilmResponse>> response) {
+                if (!isAdded() || getContext() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
 
                     List<String> urls = new ArrayList<>();
+                    List<Integer> ids = new ArrayList<>();
+
                     for (FilmResponse f : response.body()) {
                         if (f != null && f.image_url != null && !f.image_url.isEmpty()) {
                             urls.add(buildFullImageUrl(f.image_url));
+                            ids.add(f.id);
                         }
                     }
 
                     RecyclerView rv = root.findViewById(R.id.wishlist_recycler);
                     setupHorizontalPreviewRecycler(rv);
-                    rv.setAdapter(new MovieAdapter(requireContext(), urls, position -> {}));
+
+                    MovieAdapter adapter = MovieAdapter.createWithUrlsOnly(getContext(), urls, position -> {});
+                    adapter.updateUrlsData(urls, ids);
+                    rv.setAdapter(adapter);
                 }
             }
 

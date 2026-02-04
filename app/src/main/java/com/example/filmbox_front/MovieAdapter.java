@@ -1,6 +1,7 @@
 package com.example.filmbox_front;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,11 +14,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
 
-    private List<String> movieImages; // URLs de las portadas
+    // --- Modos de datos ---
+    private List<String> movieImages;              // legacy: solo URLs
+    private List<String> movieUrls;                // nuevo: URLs
+    private List<Integer> movieIds;                // nuevo: IDs correspondientes a URLs
+
+    private boolean useUrlsMode = false;
+
     private final Context context;
     private final OnMovieClickListener listener;
 
@@ -25,10 +33,26 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         void onMovieClick(int position);
     }
 
+    // --- Constructor legacy (tu versión vieja) ---
     public MovieAdapter(Context context, List<String> movieImages, OnMovieClickListener listener) {
         this.context = context;
         this.movieImages = movieImages;
         this.listener = listener;
+        this.useUrlsMode = false;
+    }
+
+    // --- Constructor nuevo (URLs + IDs) ---
+    public MovieAdapter(Context context, List<String> movieUrls, List<Integer> movieIds, OnMovieClickListener listener) {
+        this.context = context;
+        this.movieUrls = movieUrls;
+        this.movieIds = movieIds;
+        this.listener = listener;
+        this.useUrlsMode = true;
+    }
+
+    // --- Factory como en los cambios de tu compi (URLs-only compatible con IDs después) ---
+    public static MovieAdapter createWithUrlsOnly(Context context, List<String> movieUrls, OnMovieClickListener listener) {
+        return new MovieAdapter(context, movieUrls, new ArrayList<>(), listener);
     }
 
     @NonNull
@@ -36,9 +60,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     public MovieViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_movie, parent, false);
 
-        // 🔥 CLAVE: mismo adapter se usa en GRID y en carrusel horizontal.
-        // Si el RecyclerView usa GridLayoutManager, el item debe ocupar el ancho de su columna.
-        // Si no, dejamos el ancho fijo (120dp) para previews/carruseles.
+        // mismo adapter para GRID y carrusel horizontal
         RecyclerView.LayoutManager lm = null;
         if (parent instanceof RecyclerView) {
             lm = ((RecyclerView) parent).getLayoutManager();
@@ -48,8 +70,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         if (lp instanceof RecyclerView.LayoutParams) {
             if (lm instanceof GridLayoutManager) {
                 lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                // La altura la controla tu XML (180dp). Si quieres 170dp en grid, cámbialo en XML
-                // o añade aquí una condición extra.
             } else {
                 lp.width = dp(120);
             }
@@ -61,13 +81,26 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     @Override
     public void onBindViewHolder(@NonNull MovieViewHolder holder, int position) {
-        if (movieImages == null || position < 0 || position >= movieImages.size()) return;
 
-        String url = movieImages.get(position);
+        String imageUrl;
+        int movieId = -1;
 
-        if (url != null && !url.isEmpty()) {
+        if (useUrlsMode) {
+            if (movieUrls == null || position < 0 || position >= movieUrls.size()) return;
+
+            imageUrl = movieUrls.get(position);
+
+            if (movieIds != null && position < movieIds.size()) {
+                movieId = movieIds.get(position);
+            }
+        } else {
+            if (movieImages == null || position < 0 || position >= movieImages.size()) return;
+            imageUrl = movieImages.get(position);
+        }
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
             Picasso.get()
-                    .load(url)
+                    .load(imageUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)
                     .error(R.drawable.ic_launcher_foreground)
                     .fit()
@@ -77,13 +110,30 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             holder.imageView.setImageResource(R.drawable.ic_launcher_foreground);
         }
 
-        if (listener != null) {
-            holder.itemView.setOnClickListener(v -> listener.onMovieClick(position));
-        }
+        final int finalMovieId = movieId;
+
+        holder.itemView.setOnClickListener(v -> {
+            // 1) Listener custom (si lo usas)
+            if (listener != null) {
+                listener.onMovieClick(position);
+            }
+
+            // 2) Navegar a detalles si hay ID
+            if (finalMovieId != -1) {
+                Intent intent = new Intent(context, FilmPageActivity.class);
+                intent.putExtra("movie_id", finalMovieId);
+                context.startActivity(intent);
+            } else {
+                Log.w("MovieAdapter", "No hay ID disponible para position=" + position);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
+        if (useUrlsMode) {
+            return movieUrls == null ? 0 : movieUrls.size();
+        }
         return movieImages == null ? 0 : movieImages.size();
     }
 
@@ -96,7 +146,24 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         }
     }
 
+    // --- Nuevo update para URLs + IDs ---
+    public void updateUrlsData(List<String> newUrls, List<Integer> newIds) {
+        this.useUrlsMode = true;
+
+        this.movieUrls = newUrls != null ? newUrls : new ArrayList<>();
+        this.movieIds = newIds != null ? newIds : new ArrayList<>();
+
+        notifyDataSetChanged();
+    }
+
+    // --- Mantener tu método viejo (legacy) para que no rompa otras pantallas ---
     public void updateData(List<String> newImages) {
+        // si el adapter está en modo nuevo, mantenlo en modo nuevo y mete IDs vacíos
+        if (useUrlsMode) {
+            updateUrlsData(newImages, new ArrayList<>());
+            return;
+        }
+
         if (this.movieImages != null) this.movieImages.clear();
         if (newImages != null) this.movieImages.addAll(newImages);
         notifyDataSetChanged();

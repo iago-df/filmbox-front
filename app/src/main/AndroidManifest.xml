@@ -42,6 +42,18 @@
             android:name=".MainActivity"
             android:exported="false" />
 
+        <!-- Film Page Activity -->
+        <activity
+            android:name=".FilmPageActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- All Reviews Activity -->
+        <activity
+            android:name=".AllReviewsActivity"
+            android:exported="false"
+            android:parentActivityName=".FilmPageActivity" />
+
     </application>
 
 </manifest>

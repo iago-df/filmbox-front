@@ -60,13 +60,11 @@ public class WishlistFragment extends Fragment {
         final int spanCount = 3;
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
 
-        // Importante: NO padding lateral aquí (lo controlas con márgenes en XML)
-        // Evita duplicar decoraciones si vuelves a entrar
         while (recyclerView.getItemDecorationCount() > 0) {
             recyclerView.removeItemDecorationAt(0);
         }
 
-        final int spacing = dp(8); // prueba dp(6) si lo quieres más compacto
+        final int spacing = dp(8);
         recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
             public void getItemOffsets(@NonNull Rect outRect, @NonNull View v,
@@ -84,7 +82,7 @@ public class WishlistFragment extends Fragment {
             }
         });
 
-        MovieAdapter adapter = new MovieAdapter(requireContext(), new ArrayList<>(), pos -> {});
+        MovieAdapter adapter = MovieAdapter.createWithUrlsOnly(requireContext(), new ArrayList<>(), pos -> {});
         recyclerView.setAdapter(adapter);
 
         loadWishlist(adapter);
@@ -106,20 +104,24 @@ public class WishlistFragment extends Fragment {
                 Log.d("WishlistFragment", "Respuesta: code=" + response.code() + ", body!=null=" + (response.body() != null));
 
                 if (response.isSuccessful() && response.body() != null) {
+
                     List<FilmResponse> body = response.body();
-                    List<String> urls = new ArrayList<>();
+                    final List<String> urls = new ArrayList<>();
+                    final List<Integer> ids = new ArrayList<>();
 
                     for (FilmResponse film : body) {
                         if (film != null && film.image_url != null && !film.image_url.isEmpty()) {
                             urls.add(buildFullImageUrl(film.image_url));
+                            ids.add(film.id);
                         }
                     }
 
                     if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> adapter.updateData(urls));
+                        getActivity().runOnUiThread(() -> adapter.updateUrlsData(urls, ids));
                     } else {
-                        adapter.updateData(urls);
+                        adapter.updateUrlsData(urls, ids);
                     }
+
                 } else {
                     Log.e("WishlistFragment", "Error wishlist: " + response.code() + " " + response.message());
                 }
