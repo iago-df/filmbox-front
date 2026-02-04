@@ -19,7 +19,7 @@
 
         <!-- LAUNCHER: decide si vas a Login o Main -->
         <activity
-            android:name=".LauncherActivity"
+            android:name=".activities.LauncherActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,30 +29,30 @@
 
         <!-- Login -->
         <activity
-            android:name=".LoginActivity"
+            android:name=".activities.LoginActivity"
             android:exported="false" />
 
         <!-- Register -->
         <activity
-            android:name=".RegisterActivity"
+            android:name=".activities.RegisterActivity"
             android:exported="false" />
 
         <!-- Main -->
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:exported="false" />
 
         <!-- Film Page Activity -->
         <activity
-            android:name=".FilmPageActivity"
+            android:name=".activities.FilmPageActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".activities.MainActivity" />
 
         <!-- All Reviews Activity -->
         <activity
-            android:name=".AllReviewsActivity"
+            android:name=".activities.AllReviewsActivity"
             android:exported="false"
-            android:parentActivityName=".FilmPageActivity" />
+            android:parentActivityName=".activities.FilmPageActivity" />
 
     </application>
 
